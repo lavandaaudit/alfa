@@ -1041,9 +1041,8 @@
         const r = parseInt(hex.slice(1,3),16);
         const g = parseInt(hex.slice(3,5),16);
         const b = parseInt(hex.slice(5,7),16);
-        document.getElementById('fabricR').value = r;
-        document.getElementById('fabricG').value = g;
-        document.getElementById('fabricB').value = b;
+        const rgbInput = document.getElementById('fabricRgbInput');
+        if (rgbInput) rgbInput.value = r + ',' + g + ',' + b;
     }
 
     function syncFabricSwatch(color) {
@@ -1056,13 +1055,14 @@
     document.querySelectorAll('#printSwatches .color-swatch').forEach(sw => {
         sw.addEventListener('click', () => {
             state.printColor = sw.dataset.color;
-            document.getElementById('customPrintColor').value = sw.dataset.color;
+            const picker = document.getElementById('printColorPicker');
+            if (picker) picker.value = sw.dataset.color;
             reapplyCurrentZoneDecal();
             pushUndo();
         });
     });
 
-    document.getElementById('customPrintColor').addEventListener('input', (e) => {
+    document.getElementById('printColorPicker')?.addEventListener('input', (e) => {
         state.printColor = e.target.value;
         reapplyCurrentZoneDecal();
     });
