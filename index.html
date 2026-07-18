@@ -343,6 +343,8 @@
             <!-- Three.js Canvas Container -->
             <div class="three-canvas-wrapper" id="canvasWrapper">
                 <canvas id="threeCanvas"></canvas>
+                <!-- Zone indicator overlay -->
+                <div class="zone-hint" id="zoneHint">FRONT · Drag to move · Scroll to resize</div>
                 <!-- Loading overlay -->
                 <div class="viewer-loading" id="viewerLoading">
                     <div class="loading-spinner"></div>
@@ -613,9 +615,12 @@
                 <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>D</kbd> <span>Duplicate Layer</span></div>
                 <div class="shortcut-row"><kbd>G</kbd> <span>Toggle Grid</span></div>
                 <div class="shortcut-row"><kbd>F</kbd> <span>Fullscreen</span></div>
-                <div class="shortcut-row"><kbd>Space</kbd> <span>Reset Camera</span></div>
+                <div class="shortcut-row"><kbd>Space</kbd> <span>Reset Camera to Zone</span></div>
+                <div class="shortcut-row"><kbd>1</kbd>–<kbd>5</kbd> <span>Switch Zone (Front/Back/Sleeves/Neck)</span></div>
+                <div class="shortcut-row"><kbd>Mouse Drag</kbd> <span>Move Decal on Surface</span></div>
+                <div class="shortcut-row"><kbd>Scroll</kbd> <span>Resize Decal</span></div>
+                <div class="shortcut-row"><kbd>+</kbd> / <kbd>-</kbd> <span>Scale Up / Down</span></div>
                 <div class="shortcut-row"><kbd>Arrows</kbd> <span>Nudge Decal</span></div>
-                <div class="shortcut-row"><kbd>Shift</kbd>+<kbd>Arrows</kbd> <span>Nudge 10x</span></div>
             </div>
         </div>
     </div>
