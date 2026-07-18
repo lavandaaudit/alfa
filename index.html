@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAVANDA TEXTILE CONSTRUCTOR</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Three.js from CDN (unpkg — most reliable for GitHub Pages) -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/geometries/DecalGeometry.js"></script>
+</head>
+<body>
+
+    <!-- ========== HEADER ========== -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">Lavanda<span class="logo-accent">Audit</span></span>
+            </div>
+        </div>
+        <nav class="header-nav">
+            <a href="#" class="nav-item active">Studio</a>
+            <a href="#" class="nav-item">Templates</a>
+            <a href="#" class="nav-item">Collection</a>
+            <a href="#" class="nav-item">Marketplace</a>
+            <a href="#" class="nav-item">Projects</a>
+            <a href="#" class="nav-item">Help</a>
+        </nav>
+        <div class="header-right">
+            <button class="btn-export" id="btnExportHeader">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Export
+            </button>
+        </div>
+    </header>
+
+    <!-- ========== MAIN LAYOUT ========== -->
+    <main class="app-main">
+
+        <!-- ========== LEFT SIDEBAR ========== -->
+        <aside class="sidebar sidebar-left" id="sidebarLeft">
+
+            <!-- Step 1: Upload Logo -->
+            <div class="sidebar-section" data-step="1">
+                <div class="step-header" data-toggle="step1">
+                    <span class="step-number">1</span>
+                    <span class="step-title">Upload Logo</span>
+                    <svg class="step-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="step-content" id="step1">
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFD400" stroke-width="1.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </div>
+                        <p class="upload-text">Drag & Drop your logo</p>
+                        <p class="upload-subtext">or click to browse</p>
+                        <div class="upload-formats">
+                            <span class="format-badge">PNG</span>
+                            <span class="format-badge">SVG</span>
+                            <span class="format-badge">PDF</span>
+                            <span class="format-badge">AI</span>
+                        </div>
+                        <input type="file" id="logoInput" accept=".png,.svg,.pdf,.ai" hidden>
+                    </div>
+                    <div class="logo-preview" id="logoPreview" style="display:none;">
+                        <img id="logoPreviewImg" alt="Logo preview">
+                        <div class="logo-preview-actions">
+                            <button class="btn-icon" id="btnRemoveLogo" title="Remove logo">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Choose Product -->
+            <div class="sidebar-section" data-step="2">
+                <div class="step-header" data-toggle="step2">
+                    <span class="step-number">2</span>
+                    <span class="step-title">Choose Product</span>
+                    <svg class="step-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="step-content" id="step2">
+                    <div class="select-wrapper">
+                        <select id="productSelect" class="custom-select">
+                            <option value="">Select Product...</option>
+                            <optgroup label="T-Shirts">
+                                <option value="tshirt" selected>T-Shirt</option>
+                                <option value="oversize">Oversize T-Shirt</option>
+                            </optgroup>
+                            <optgroup label="Hoodies & Sweatshirts">
+                                <option value="hoodie">Hoodie</option>
+                                <option value="sweatshirt">Sweatshirt</option>
+                            </optgroup>
+                            <optgroup label="Long Sleeve">
+                                <option value="longsleeve">Long Sleeve</option>
+                                <option value="raglan">Raglan</option>
+                                <option value="polo">Polo Shirt</option>
+                            </optgroup>
+                            <optgroup label="Tanks">
+                                <option value="tanktop">Tank Top</option>
+                            </optgroup>
+                            <optgroup label="Headwear">
+                                <option value="cap">Cap</option>
+                                <option value="beanie">Beanie</option>
+                                <option value="buckethat">Bucket Hat</option>
+                            </optgroup>
+                            <optgroup label="Bags">
+                                <option value="shopper">Shopper Bag</option>
+                                <option value="backpack">Backpack</option>
+                            </optgroup>
+                            <optgroup label="Accessories">
+                                <option value="apron">Apron</option>
+                                <option value="jacket">Jacket</option>
+                                <option value="vest">Vest</option>
+                                <option value="sportsjersey">Sports Jersey</option>
+                                <option value="babybodysuit">Baby Bodysuit</option>
+                            </optgroup>
+                            <optgroup label="Home & Office">
+                                <option value="towel">Towel</option>
+                                <option value="pillow">Pillow</option>
+                                <option value="blanket">Blanket</option>
+                                <option value="notebook">Notebook Cover</option>
+                                <option value="phonecase">Phone Case</option>
+                                <option value="mousepad">Mouse Pad</option>
+                            </optgroup>
+                        </select>
+                        <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Fabric Color -->
+            <div class="sidebar-section" data-step="3">
+                <div class="step-header" data-toggle="step3">
+                    <span class="step-number">3</span>
+                    <span class="step-title">Fabric Color</span>
+                    <svg class="step-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="step-content" id="step3">
+                    <div class="color-palette" id="fabricPalette">
+                        <div class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF;" title="White"></div>
+                        <div class="color-swatch" data-color="#000000" style="background:#000000; border:1px solid #333;" title="Black"></div>
+                        <div class="color-swatch" data-color="#808080" style="background:#808080;" title="Gray"></div>
+                        <div class="color-swatch" data-color="#404040" style="background:#404040;" title="Dark Gray"></div>
+                        <div class="color-swatch" data-color="#FFD400" style="background:#FFD400;" title="Yellow"></div>
+                        <div class="color-swatch" data-color="#FF8C00" style="background:#FF8C00;" title="Orange"></div>
+                        <div class="color-swatch" data-color="#DC143C" style="background:#DC143C;" title="Red"></div>
+                        <div class="color-swatch" data-color="#FF69B4" style="background:#FF69B4;" title="Pink"></div>
+                        <div class="color-swatch" data-color="#8B008B" style="background:#8B008B;" title="Purple"></div>
+                        <div class="color-swatch" data-color="#1E90FF" style="background:#1E90FF;" title="Blue"></div>
+                        <div class="color-swatch" data-color="#000080" style="background:#000080;" title="Navy"></div>
+                        <div class="color-swatch" data-color="#40E0D0" style="background:#40E0D0;" title="Turquoise"></div>
+                        <div class="color-swatch" data-color="#98FF98" style="background:#98FF98;" title="Mint"></div>
+                        <div class="color-swatch" data-color="#228B22" style="background:#228B22;" title="Green"></div>
+                        <div class="color-swatch" data-color="#6B8E23" style="background:#6B8E23;" title="Olive"></div>
+                        <div class="color-swatch" data-color="#8B4513" style="background:#8B4513;" title="Brown"></div>
+                        <div class="color-swatch" data-color="#F5F5DC" style="background:#F5F5DC;" title="Beige"></div>
+                        <div class="color-swatch" data-color="#FFFDD0" style="background:#FFFDD0;" title="Cream"></div>
+                        <div class="color-swatch" data-color="#DAA520" style="background:#DAA520;" title="Gold"></div>
+                        <div class="color-swatch" data-color="#C0C0C0" style="background:#C0C0C0;" title="Silver"></div>
+                    </div>
+                    <div class="custom-color-row">
+                        <input type="color" id="customFabricColor" value="#FFFFFF" class="color-picker-input" title="Custom Color">
+                        <div class="color-input-group">
+                            <label class="color-input-label">HEX</label>
+                            <input type="text" id="fabricHexInput" class="color-text-input" value="#FFFFFF" maxlength="7" placeholder="#FFFFFF">
+                        </div>
+                        <div class="color-input-group">
+                            <label class="color-input-label">RGB</label>
+                            <input type="text" id="fabricRgbInput" class="color-text-input" value="255,255,255" maxlength="11" placeholder="255,255,255">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Print Color -->
+            <div class="sidebar-section" data-step="4">
+                <div class="step-header" data-toggle="step4">
+                    <span class="step-number">4</span>
+                    <span class="step-title">Print Color</span>
+                    <svg class="step-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="step-content" id="step4">
+                    <div class="color-palette" id="printPalette">
+                        <div class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF;" title="White"></div>
+                        <div class="color-swatch" data-color="#000000" style="background:#000000; border:1px solid #333;" title="Black"></div>
+                        <div class="color-swatch" data-color="#FFD400" style="background:#FFD400;" title="Yellow"></div>
+                        <div class="color-swatch" data-color="#DC143C" style="background:#DC143C;" title="Red"></div>
+                        <div class="color-swatch" data-color="#1E90FF" style="background:#1E90FF;" title="Blue"></div>
+                        <div class="color-swatch" data-color="#228B22" style="background:#228B22;" title="Green"></div>
+                        <div class="color-swatch" data-color="#FF69B4" style="background:#FF69B4;" title="Pink"></div>
+                        <div class="color-swatch" data-color="#FF8C00" style="background:#FF8C00;" title="Orange"></div>
+                        <div class="color-swatch" data-color="#8B008B" style="background:#8B008B;" title="Purple"></div>
+                        <div class="color-swatch" data-color="#808080" style="background:#808080;" title="Gray"></div>
+                    </div>
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label>Color</label>
+                            <input type="color" id="printColorPicker" value="#FFFFFF" class="color-picker-input">
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <div class="control-group full-width">
+                            <label>Opacity <span id="opacityValue">100</span>%</label>
+                            <input type="range" id="printOpacity" min="0" max="100" value="100" class="slider-input">
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label>Blend Mode</label>
+                            <select id="blendMode" class="custom-select small-select">
+                                <option value="normal">Normal</option>
+                                <option value="multiply">Multiply</option>
+                                <option value="screen">Screen</option>
+                                <option value="overlay">Overlay</option>
+                                <option value="soft-light">Soft Light</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Layers -->
+            <div class="sidebar-section" data-step="5">
+                <div class="step-header" data-toggle="step5">
+                    <span class="step-number">5</span>
+                    <span class="step-title">Layers</span>
+                    <svg class="step-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="step-content" id="step5">
+                    <div class="layer-zones">
+                        <div class="layer-zone active" data-zone="front">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            <span>Front</span>
+                        </div>
+                        <div class="layer-zone" data-zone="back">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            <span>Back</span>
+                        </div>
+                        <div class="layer-zone" data-zone="left-sleeve">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            <span>L. Sleeve</span>
+                        </div>
+                        <div class="layer-zone" data-zone="right-sleeve">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            <span>R. Sleeve</span>
+                        </div>
+                        <div class="layer-zone" data-zone="neck">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                            <span>Neck</span>
+                        </div>
+                        <div class="layer-zone" data-zone="label">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            <span>Label</span>
+                        </div>
+                        <div class="layer-zone" data-zone="pocket">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            <span>Pocket</span>
+                        </div>
+                    </div>
+                    <div class="layer-list" id="layerList">
+                        <!-- Layers will be dynamically added here -->
+                        <div class="layer-empty">No layers yet. Upload a logo to begin.</div>
+                    </div>
+                    <div class="layer-actions">
+                        <button class="btn-icon" id="btnDuplicateLayer" title="Duplicate Layer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                        <button class="btn-icon" id="btnDeleteLayer" title="Delete Layer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                        <button class="btn-icon" id="btnHideLayer" title="Toggle Visibility">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="btn-icon" id="btnLockLayer" title="Lock Layer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- ========== CENTER: 3D VIEWER ========== -->
+        <section class="viewer-container" id="viewerContainer">
+            <!-- Toolbar -->
+            <div class="viewer-toolbar">
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" id="btnUndo" title="Undo (Ctrl+Z)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                    </button>
+                    <button class="toolbar-btn" id="btnRedo" title="Redo (Ctrl+Shift+Z)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" id="btnGrid" title="Toggle Grid">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+                    </button>
+                    <button class="toolbar-btn" id="btnSafeArea" title="Safe Print Area">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="4 2"/></svg>
+                    </button>
+                    <button class="toolbar-btn" id="btnFullscreen" title="Fullscreen">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Three.js Canvas Container -->
+            <div class="three-canvas-wrapper" id="canvasWrapper">
+                <canvas id="threeCanvas"></canvas>
+                <!-- Loading overlay -->
+                <div class="viewer-loading" id="viewerLoading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading 3D Model...</p>
+                </div>
+            </div>
+
+            <!-- Bottom Product Carousel -->
+            <div class="product-carousel" id="productCarousel">
+                <button class="carousel-nav carousel-prev" id="carouselPrev">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <div class="carousel-track" id="carouselTrack">
+                    <!-- Carousel cards injected by JS -->
+                </div>
+                <button class="carousel-nav carousel-next" id="carouselNext">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========== RIGHT SIDEBAR ========== -->
+        <aside class="sidebar sidebar-right" id="sidebarRight">
+            <div class="right-tabs">
+                <button class="right-tab active" data-tab="design">Design</button>
+                <button class="right-tab" data-tab="product">Product</button>
+                <button class="right-tab" data-tab="scene">Scene</button>
+            </div>
+
+            <!-- DESIGN TAB -->
+            <div class="right-panel active" id="panelDesign">
+                <div class="panel-section">
+                    <h4 class="panel-title">Position</h4>
+                    <div class="control-grid">
+                        <div class="control-group">
+                            <label>X</label>
+                            <input type="number" id="posX" value="0" step="0.01" class="num-input">
+                        </div>
+                        <div class="control-group">
+                            <label>Y</label>
+                            <input type="number" id="posY" value="0" step="0.01" class="num-input">
+                        </div>
+                        <div class="control-group">
+                            <label>Z</label>
+                            <input type="number" id="posZ" value="0.29" step="0.01" class="num-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <h4 class="panel-title">Scale</h4>
+                    <div class="control-grid">
+                        <div class="control-group">
+                            <label>W</label>
+                            <input type="number" id="scaleW" value="0.25" step="0.01" min="0.01" class="num-input">
+                        </div>
+                        <div class="control-group">
+                            <label>H</label>
+                            <input type="number" id="scaleH" value="0.25" step="0.01" min="0.01" class="num-input">
+                        </div>
+                        <div class="control-group">
+                            <label>Lock</label>
+                            <button class="btn-toggle active" id="btnLockAspect" title="Lock Aspect Ratio">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <h4 class="panel-title">Rotation</h4>
+                    <div class="control-grid">
+                        <div class="control-group">
+                            <label>X</label>
+                            <input type="number" id="rotX" value="0" step="1" min="-360" max="360" class="num-input">
+                        </div>
+                        <div class="control-group">
+                            <label>Y</label>
+                            <input type="number" id="rotY" value="0" step="1" min="-360" max="360" class="num-input">
+                        </div>
+                        <div class="control-group">
+                            <label>Z</label>
+                            <input type="number" id="rotZ" value="0" step="1" min="-360" max="360" class="num-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <h4 class="panel-title">Transform</h4>
+                    <div class="control-row">
+                        <div class="control-group full-width">
+                            <label>Opacity <span id="decalOpacityVal">100</span>%</label>
+                            <input type="range" id="decalOpacity" min="0" max="100" value="100" class="slider-input">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-sm" id="btnMirrorH" title="Mirror Horizontal">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 2 3 6 7 10"/><polyline points="17 2 21 6 17 10"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/><polyline points="7 14 3 18 7 22"/><polyline points="17 14 21 18 17 22"/></svg>
+                            Mirror H
+                        </button>
+                        <button class="btn-sm" id="btnFlipV" title="Flip Vertical">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 7 6 3 10 7"/><polyline points="2 17 6 21 10 17"/><line x1="6" y1="3" x2="6" y2="21"/><line x1="18" y1="3" x2="18" y2="21"/><polyline points="14 7 18 3 22 7"/><polyline points="14 17 18 21 22 17"/></svg>
+                            Flip V
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <h4 class="panel-title">Alignment</h4>
+                    <div class="btn-group">
+                        <button class="btn-sm" id="btnAlignCenter" title="Center">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="12" r="3"/></svg>
+                            Center
+                        </button>
+                        <button class="btn-sm" id="btnFitWidth" title="Fit Width">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                            Fit W
+                        </button>
+                        <button class="btn-sm" id="btnFitHeight" title="Fit Height">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 3 3 9 9 9"/><polyline points="21 21 21 15 15 15"/><line x1="3" y1="3" x2="10" y2="10"/><line x1="21" y1="21" x2="14" y2="14"/></svg>
+                            Fit H
+                        </button>
+                        <button class="btn-sm" id="btnSnap" title="Snap to Anchor">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="4"/></svg>
+                            Snap
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRODUCT TAB -->
+            <div class="right-panel" id="panelProduct">
+                <div class="panel-section">
+                    <h4 class="panel-title">Material</h4>
+                    <div class="material-grid">
+                        <button class="material-btn active" data-material="cotton">Cotton</button>
+                        <button class="material-btn" data-material="polyester">Polyester</button>
+                        <button class="material-btn" data-material="heavy-cotton">Heavy Cotton</button>
+                        <button class="material-btn" data-material="premium">Premium</button>
+                        <button class="material-btn" data-material="organic">Organic</button>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <h4 class="panel-title">Texture</h4>
+                    <div class="texture-grid">
+                        <button class="texture-btn active" data-texture="matte">Matte</button>
+                        <button class="texture-btn" data-texture="soft">Soft</button>
+                        <button class="texture-btn" data-texture="gloss">Gloss</button>
+                        <button class="texture-btn" data-texture="wrinkles">Wrinkles</button>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <h4 class="panel-title">Reflection</h4>
+                    <div class="control-row">
+                        <div class="control-group full-width">
+                            <label>Intensity <span id="reflectionVal">0.3</span></label>
+                            <input type="range" id="reflectionIntensity" min="0" max="100" value="30" class="slider-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCENE TAB -->
+            <div class="right-panel" id="panelScene">
+                <div class="panel-section">
+                    <h4 class="panel-title">Studio Environment</h4>
+                    <div class="scene-grid">
+                        <button class="scene-btn active" data-scene="dark-studio">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #1a1a2e, #0d0d1a);"></div>
+                            <span>Dark Studio</span>
+                        </button>
+                        <button class="scene-btn" data-scene="white-studio">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #f0f0f0, #d0d0d0);"></div>
+                            <span>White Studio</span>
+                        </button>
+                        <button class="scene-btn" data-scene="wood-table">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #8B4513, #D2691E);"></div>
+                            <span>Wood Table</span>
+                        </button>
+                        <button class="scene-btn" data-scene="concrete">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #808080, #a0a0a0);"></div>
+                            <span>Concrete</span>
+                        </button>
+                        <button class="scene-btn" data-scene="office">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #2c3e50, #3498db);"></div>
+                            <span>Office</span>
+                        </button>
+                        <button class="scene-btn" data-scene="lifestyle">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #e74c3c, #f39c12);"></div>
+                            <span>Lifestyle</span>
+                        </button>
+                        <button class="scene-btn" data-scene="warehouse">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #2d2d2d, #4a4a4a);"></div>
+                            <span>Warehouse</span>
+                        </button>
+                        <button class="scene-btn" data-scene="christmas">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #1a472a, #c0392b);"></div>
+                            <span>Christmas</span>
+                        </button>
+                        <button class="scene-btn" data-scene="football">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #27ae60, #2ecc71);"></div>
+                            <span>Football</span>
+                        </button>
+                        <button class="scene-btn" data-scene="luxury">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #b8860b, #ffd700);"></div>
+                            <span>Luxury</span>
+                        </button>
+                        <button class="scene-btn" data-scene="cyber">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #0a0a2e, #ff00ff);"></div>
+                            <span>Cyber</span>
+                        </button>
+                        <button class="scene-btn" data-scene="minimal">
+                            <div class="scene-preview" style="background: linear-gradient(135deg, #fafafa, #e0e0e0);"></div>
+                            <span>Minimal</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM RIGHT: Export Actions -->
+            <div class="export-actions">
+                <button class="btn-render" id="btnRenderPreview">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    Render Preview
+                </button>
+                <div class="export-buttons-grid">
+                    <button class="btn-download" id="btnDownloadPNG">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        PNG
+                    </button>
+                    <button class="btn-download" id="btnDownloadJPG">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        JPG
+                    </button>
+                    <button class="btn-download" id="btnDownloadWEBP">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        WEBP
+                    </button>
+                    <button class="btn-download" id="btnExportScene">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Export Scene
+                    </button>
+                    <button class="btn-download" id="btnSaveProject">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        Save Project
+                    </button>
+                    <button class="btn-download" id="btnTransparentExport">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+                        Transparent
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div class="modal-overlay" id="shortcutsModal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Keyboard Shortcuts</h3>
+                <button class="modal-close" id="closeShortcuts">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Z</kbd> <span>Undo</span></div>
+                <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> <span>Redo</span></div>
+                <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>S</kbd> <span>Save Project</span></div>
+                <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>E</kbd> <span>Export PNG</span></div>
+                <div class="shortcut-row"><kbd>Del</kbd> <span>Delete Selected Layer</span></div>
+                <div class="shortcut-row"><kbd>Ctrl</kbd>+<kbd>D</kbd> <span>Duplicate Layer</span></div>
+                <div class="shortcut-row"><kbd>G</kbd> <span>Toggle Grid</span></div>
+                <div class="shortcut-row"><kbd>F</kbd> <span>Fullscreen</span></div>
+                <div class="shortcut-row"><kbd>Space</kbd> <span>Reset Camera</span></div>
+                <div class="shortcut-row"><kbd>Arrows</kbd> <span>Nudge Decal</span></div>
+                <div class="shortcut-row"><kbd>Shift</kbd>+<kbd>Arrows</kbd> <span>Nudge 10x</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Script -->
+    <script>
+        /* Guard: ensure Three.js loaded before running app */
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof THREE === 'undefined') {
+                document.getElementById('viewerLoading').innerHTML =
+                    '<p style="color:#FFD400;font-size:14px;">Three.js failed to load.</p>' +
+                    '<p style="color:#999;font-size:11px;">Check your internet connection or try refreshing.</p>';
+                return;
+            }
+            var s = document.createElement('script');
+            s.src = 'app.js';
+            document.body.appendChild(s);
+        });
+    </script>
+</body>
+</html>
