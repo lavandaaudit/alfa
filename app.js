@@ -356,6 +356,39 @@
         return group;
     }
 
+    /* ──────────────── GLB MODEL FILE MAP ──────────────── */
+    /* Drop your .glb files into three/models/ and they auto-load.
+       Naming convention: tshirt.glb, oversize.glb, hoodie.glb, etc.
+       If no GLB found → falls back to procedural geometry.            */
+    const MODEL_FILES = {
+        'tshirt':        'three/models/tshirt.glb',
+        'oversize':      'three/models/oversize.glb',
+        'hoodie':        'three/models/hoodie.glb',
+        'sweatshirt':    'three/models/sweatshirt.glb',
+        'longsleeve':    'three/models/longsleeve.glb',
+        'raglan':        'three/models/raglan.glb',
+        'polo':          'three/models/polo.glb',
+        'tanktop':       'three/models/tanktop.glb',
+        'cap':           'three/models/cap.glb',
+        'beanie':        'three/models/beanie.glb',
+        'buckethat':     'three/models/buckethat.glb',
+        'shopper':       'three/models/shopper.glb',
+        'backpack':      'three/models/backpack.glb',
+        'apron':         'three/models/apron.glb',
+        'jacket':        'three/models/jacket.glb',
+        'vest':          'three/models/vest.glb',
+        'sportsjersey':  'three/models/sportsjersey.glb',
+        'babybodysuit':  'three/models/babybodysuit.glb',
+        'towel':         'three/models/towel.glb',
+        'pillow':        'three/models/pillow.glb',
+        'blanket':       'three/models/blanket.glb',
+        'notebook':      'three/models/notebook.glb',
+        'phonecase':     'three/models/phonecase.glb',
+        'mousepad':      'three/models/mousepad.glb',
+    };
+
+    const loader = new THREE.GLTFLoader();
+
     /* ──────────────── MODEL MANAGEMENT ──────────────── */
     let currentModel = null;
     let decalMeshes = [];  /* Track applied decal meshes for cleanup */
@@ -369,6 +402,54 @@
         clearDecals();
 
         const c = color || state.fabricColor;
+
+        /* Try loading GLB first, fall back to procedural */
+        const glbPath = MODEL_FILES[productId];
+        if (glbPath) {
+            loading.classList.remove('hidden');
+            loader.load(
+                glbPath,
+                (gltf) => {
+                    currentModel = gltf.scene;
+                    /* Apply fabric color to all meshes */
+                    currentModel.traverse(child => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            if (child.material) {
+                                child.material.color = new THREE.Color(c);
+                                child.material.roughness = child.material.roughness || 0.85;
+                            }
+                        }
+                    });
+                    /* Auto-center and scale */
+                    const box = new THREE.Box3().setFromObject(currentModel);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 1.5 / Math.max(maxDim, EPS);
+                    currentModel.scale.setScalar(scale);
+                    /* Center on ground */
+                    const center = box.getCenter(new THREE.Vector3());
+                    currentModel.position.sub(center);
+                    currentModel.position.y += (size.y * scale) / 2 - 0.8;
+
+                    scene.add(currentModel);
+                    loading.classList.add('hidden');
+                    if (state.showSafeArea) toggleSafeArea(false);
+                    toggleSafeArea(state.showSafeArea);
+                },
+                undefined, /* onProgress */
+                () => {
+                    /* GLB not found → procedural fallback */
+                    loadProcedural(productId, c);
+                }
+            );
+        } else {
+            loadProcedural(productId, c);
+        }
+    }
+
+    function loadProcedural(productId, c) {
         switch (productId) {
             case 'hoodie':       currentModel = createProceduralHoodie(c); break;
             case 'cap':          currentModel = createProceduralCap(c); break;
