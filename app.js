@@ -393,6 +393,41 @@
     let currentModel = null;
     let decalMeshes = [];  /* Track applied decal meshes for cleanup */
 
+    /* Computed anchor points for the current model (world-space) */
+    const modelAnchors = {
+        frontCenter: new THREE.Vector3(0, 0, 0.29),
+        modelSize:   new THREE.Vector3(1, 1, 1),
+        modelScale:  0.25,  /* default decal scale relative to model */
+    };
+
+    /* Recompute anchor points from the current model's bounding box */
+    function computeModelAnchors() {
+        if (!currentModel) return;
+        const box   = new THREE.Box3().setFromObject(currentModel);
+        const size  = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+
+        /* Front face: center.x, center.y, max.z + small offset so ray hits surface */
+        modelAnchors.frontCenter.set(
+            center.x,
+            center.y + size.y * 0.05,   /* slightly above center = chest area */
+            box.max.z + 0.02
+        );
+        modelAnchors.modelSize.copy(size);
+        modelAnchors.modelScale = Math.min(size.x, size.y) * 0.35;
+
+        /* Reset decal transforms to match new model */
+        state.decalTransforms.posX = 0;
+        state.decalTransforms.posY = 0;
+        state.decalTransforms.posZ = 0;
+        state.decalTransforms.scaleX = modelAnchors.modelScale;
+        state.decalTransforms.scaleY = modelAnchors.modelScale;
+        state.decalTransforms.rotX = 0;
+        state.decalTransforms.rotY = 0;
+        state.decalTransforms.rotZ = 0;
+        syncDesignInputs();
+    }
+
     function loadProduct(productId, color) {
         /* Remove previous model */
         if (currentModel) {
@@ -434,7 +469,11 @@
                     currentModel.position.y += (size.y * scale) / 2 - 0.8;
 
                     scene.add(currentModel);
+                    currentModel.updateMatrixWorld(true);
                     loading.classList.add('hidden');
+                    /* Compute anchors AFTER model is in scene with updated matrix */
+                    computeModelAnchors();
+                    if (decalTexture) reapplyDecals();
                     if (state.showSafeArea) toggleSafeArea(false);
                     toggleSafeArea(state.showSafeArea);
                 },
@@ -460,7 +499,11 @@
             default:             currentModel = createProceduralTShirt(c); break;
         }
         scene.add(currentModel);
+        currentModel.updateMatrixWorld(true);
         loading.classList.add('hidden');
+        /* Compute anchors AFTER model is in scene with updated matrix */
+        computeModelAnchors();
+        if (decalTexture) reapplyDecals();
 
         /* Re-apply safe area if active */
         if (state.showSafeArea) toggleSafeArea(false);
@@ -485,10 +528,17 @@
     function applyDecal(texture, position, rotation, scale) {
         if (!currentModel || !texture) return;
 
+        /* Compute actual world position: anchor + user offset */
+        const worldPos = new THREE.Vector3(
+            modelAnchors.frontCenter.x + position.x,
+            modelAnchors.frontCenter.y + position.y,
+            modelAnchors.frontCenter.z + position.z
+        );
+
         /* Check if DecalGeometry is available */
         if (typeof THREE.DecalGeometry === 'undefined') {
             console.warn('DecalGeometry not loaded — using fallback plane');
-            applyDecalFallback(texture, position, scale);
+            applyDecalFallback(texture, worldPos, scale);
             return;
         }
 
@@ -499,10 +549,17 @@
                 targetMeshes.push(child);
             }
         });
-        if (targetMeshes.length === 0) return;
+        if (targetMeshes.length === 0) {
+            console.warn('No target meshes found for decal');
+            return;
+        }
 
-        const size = new THREE.Vector3(Math.abs(scale.x) || 0.3, Math.abs(scale.y) || 0.3, 0.3);
+        const absScaleX = Math.abs(scale.x) || 0.3;
+        const absScaleY = Math.abs(scale.y) || 0.3;
+        const size = new THREE.Vector3(absScaleX, absScaleY, Math.max(absScaleX, absScaleY) * 0.5);
 
+        /* If print color is not white, tint the decal material */
+        const tintCol = new THREE.Color(state.printColor);
         const mat = new THREE.MeshStandardMaterial({
             map: texture,
             transparent: true,
@@ -512,32 +569,43 @@
             polygonOffsetFactor: -1,
             roughness: 0.6,
             metalness: 0.0,
+            color: tintCol,
         });
 
+        let anySuccess = false;
         targetMeshes.forEach(mesh => {
             try {
                 const decalGeo = new THREE.DecalGeometry(
                     mesh,
-                    new THREE.Vector3(position.x, position.y, position.z),
+                    worldPos,
                     new THREE.Euler(rotation.x, rotation.y, rotation.z),
                     size
                 );
-                if (!decalGeo) return;
+                if (!decalGeo || decalGeo.attributes.position.count === 0) return;
                 const decalMesh = new THREE.Mesh(decalGeo, mat);
                 decalMesh.name = 'decal';
                 decalMesh.renderOrder = 1;
                 scene.add(decalMesh);
                 decalMeshes.push(decalMesh);
+                anySuccess = true;
             } catch (err) {
-                /* Fallback if decal fails on this mesh */
-                console.warn('Decal failed on mesh, skipping:', err.message);
+                console.warn('DecalGeometry failed on mesh, trying fallback:', err.message);
             }
         });
+
+        /* If DecalGeometry produced nothing, use fallback plane */
+        if (!anySuccess) {
+            console.warn('DecalGeometry produced no geometry — using fallback plane');
+            applyDecalFallback(texture, worldPos, scale);
+        }
     }
 
-    /* Fallback: simple plane-based decal when DecalGeometry is unavailable */
-    function applyDecalFallback(texture, position, scale) {
-        const geo = new THREE.PlaneGeometry(Math.abs(scale.x) || 0.3, Math.abs(scale.y) || 0.3);
+    /* Fallback: simple plane-based decal when DecalGeometry is unavailable or fails */
+    function applyDecalFallback(texture, worldPos, scale) {
+        const absScaleX = Math.abs(scale.x) || 0.3;
+        const absScaleY = Math.abs(scale.y) || 0.3;
+        const geo = new THREE.PlaneGeometry(absScaleX, absScaleY);
+        const tintCol = new THREE.Color(state.printColor);
         const mat = new THREE.MeshStandardMaterial({
             map: texture,
             transparent: true,
@@ -546,21 +614,24 @@
             side: THREE.DoubleSide,
             roughness: 0.6,
             metalness: 0.0,
+            color: tintCol,
         });
         const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(position.x, position.y, position.z);
+        mesh.position.copy(worldPos);
         mesh.name = 'decal';
         mesh.renderOrder = 1;
         scene.add(mesh);
         decalMeshes.push(mesh);
+        console.log('Fallback decal placed at', worldPos.x.toFixed(3), worldPos.y.toFixed(3), worldPos.z.toFixed(3));
     }
 
-    function clearDecals() {
+    function clearDecals(disposeTexture) {
         decalMeshes.forEach(m => {
             scene.remove(m);
             if (m.geometry) m.geometry.dispose();
             if (m.material) {
-                if (m.material.map) m.material.map.dispose();
+                /* Do NOT dispose the shared decalTexture here — it's reused */
+                if (disposeTexture && m.material.map) m.material.map.dispose();
                 m.material.dispose();
             }
         });
@@ -631,8 +702,9 @@
         logoPreview.style.display = 'none';
         uploadZone.style.display = 'flex';
         logoInput.value = '';
+        clearDecals(true);  /* dispose texture since logo is removed */
+        if (decalTexture) decalTexture.dispose();
         decalTexture = null;
-        clearDecals();
         state.layers = [];
         state.selectedLayerId = null;
         renderLayerList();
@@ -901,24 +973,24 @@
     /* Alignment */
     document.getElementById('btnAlignCenter').addEventListener('click', () => {
         state.decalTransforms.posX = 0;
-        state.decalTransforms.posY = 0.0;
-        state.decalTransforms.posZ = 0.29;
+        state.decalTransforms.posY = 0;
+        state.decalTransforms.posZ = 0;
         syncDesignInputs();
         reapplyDecals();
         pushUndo();
     });
 
     document.getElementById('btnFitWidth').addEventListener('click', () => {
-        state.decalTransforms.scaleX = 0.6;
-        if (state.lockAspect) state.decalTransforms.scaleY = 0.6;
+        state.decalTransforms.scaleX = modelAnchors.modelScale * 1.5;
+        if (state.lockAspect) state.decalTransforms.scaleY = modelAnchors.modelScale * 1.5;
         syncDesignInputs();
         reapplyDecals();
         pushUndo();
     });
 
     document.getElementById('btnFitHeight').addEventListener('click', () => {
-        state.decalTransforms.scaleY = 0.5;
-        if (state.lockAspect) state.decalTransforms.scaleX = 0.5;
+        state.decalTransforms.scaleY = modelAnchors.modelScale * 1.2;
+        if (state.lockAspect) state.decalTransforms.scaleX = modelAnchors.modelScale * 1.2;
         syncDesignInputs();
         reapplyDecals();
         pushUndo();
@@ -927,10 +999,10 @@
     document.getElementById('btnSnap').addEventListener('click', () => {
         /* Snap to center-chest anchor */
         state.decalTransforms.posX = 0;
-        state.decalTransforms.posY = 0.0;
-        state.decalTransforms.posZ = 0.29;
-        state.decalTransforms.scaleX = 0.25;
-        state.decalTransforms.scaleY = 0.25;
+        state.decalTransforms.posY = 0;
+        state.decalTransforms.posZ = 0;
+        state.decalTransforms.scaleX = modelAnchors.modelScale;
+        state.decalTransforms.scaleY = modelAnchors.modelScale;
         state.decalTransforms.rotX = 0;
         state.decalTransforms.rotY = 0;
         state.decalTransforms.rotZ = 0;
@@ -1347,6 +1419,11 @@
     loadSavedState();
     loadProduct(state.currentProduct, state.fabricColor);
     onResize();
+    /* Delayed initial decal placement: model needs to finish loading first */
+    setTimeout(() => {
+        computeModelAnchors();
+        if (decalTexture) reapplyDecals();
+    }, 800);
     pushUndo(); /* Initial state */
     animate();
 
